@@ -1,0 +1,90 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128;
+    }
+
+    // User profiles
+    match /users/{userId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isOwner(userId);
+      allow delete: if false;
+    }
+
+    // Centralized Textile Listings
+    match /listings/{listingId} {
+      // Marketplace browsing: authenticated users (or public) can read
+      allow get, list: if true;
+      allow create: if isSignedIn() && incoming().sellerId == request.auth.uid;
+      allow update: if isSignedIn() && (existing().sellerId == request.auth.uid);
+      allow delete: if isSignedIn() && (existing().sellerId == request.auth.uid);
+    }
+
+    // Material Requisition & Quotation Bids
+    match /materialRequests/{requestId} {
+      allow get, list: if isSignedIn() && (
+        resource == null || 
+        resource.data.buyerId == request.auth.uid || 
+        resource.data.sellerId == request.auth.uid
+      );
+      allow create: if isSignedIn() && incoming().buyerId == request.auth.uid;
+      allow update: if isSignedIn() && (
+        existing().buyerId == request.auth.uid || 
+        existing().sellerId == request.auth.uid
+      );
+      allow delete: if isSignedIn() && existing().buyerId == request.auth.uid;
+    }
+
+    // Saved materials for buyers
+    match /savedMaterials/{savedId} {
+      allow get, list: if isSignedIn() && (resource == null || resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid;
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    // In-app Messages
+    match /messages/{messageId} {
+      allow get, list: if isSignedIn() && (
+        resource == null ||
+        resource.data.senderId == request.auth.uid || 
+        resource.data.receiverId == request.auth.uid
+      );
+      allow create: if isSignedIn() && incoming().senderId == request.auth.uid;
+      allow update: if isSignedIn() && (
+        existing().receiverId == request.auth.uid || 
+        existing().senderId == request.auth.uid
+      );
+    }
+
+    // EPR Regulatory and compliance records
+    match /eprRecords/{recordId} {
+      allow get, list: if isSignedIn();
+      allow create, update: if isSignedIn();
+      allow delete: if false;
+    }
+  }
+}

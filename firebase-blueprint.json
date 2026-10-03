@@ -1,0 +1,147 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with circular role in UziLink",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "format": "email", "maxLength": 150 },
+        "role": { "type": "string", "enum": ["SELLER", "RECYCLER", "MANUFACTURER", "EPR", "ADMIN"] },
+        "organizationName": { "type": "string", "maxLength": 150 },
+        "location": { "type": "string", "maxLength": 100 },
+        "phone": { "type": "string", "maxLength": 30 },
+        "verified": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["uid", "name", "email", "role"]
+    },
+    "Listing": {
+      "title": "Listing",
+      "description": "Centralized textile waste or secondary textile materials listing",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "sellerId": { "type": "string" },
+        "sellerName": { "type": "string", "maxLength": 100 },
+        "sellerLocation": { "type": "string", "maxLength": 100 },
+        "sellerEmail": { "type": "string", "format": "email" },
+        "title": { "type": "string", "minLength": 3, "maxLength": 150 },
+        "description": { "type": "string", "maxLength": 2500 },
+        "category": { "type": "string", "enum": ["Cotton", "Denim", "Synthetic", "Mixed textile", "Used clothing", "Textile scraps", "Industrial textile waste", "Fleece", "Linen & Canvas", "Other"] },
+        "materialType": { "type": "string", "maxLength": 100 },
+        "condition": { "type": "string", "maxLength": 100 },
+        "quantity": { "type": "number" },
+        "unit": { "type": "string", "enum": ["kg", "bales", "tonnes", "pieces", "meters"] },
+        "location": { "type": "string", "maxLength": 100 },
+        "price": { "type": "number" },
+        "currency": { "type": "string", "enum": ["KSh"] },
+        "negotiable": { "type": "boolean" },
+        "images": { "type": "array" },
+        "searchKeywords": { "type": "array" },
+        "status": { "type": "string", "enum": ["AVAILABLE", "PENDING", "UNAVAILABLE", "SOLD"] },
+        "carbonSavingsKg": { "type": "number" },
+        "recyclabilityScore": { "type": "number" },
+        "viewsCount": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "sellerId", "title", "category", "materialType", "condition", "quantity", "unit", "location", "price", "currency", "negotiable", "status"]
+    },
+    "MaterialRequest": {
+      "title": "MaterialRequest",
+      "description": "Inquiry or material requisition from Recycler or Manufacturer to Seller",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "listingId": { "type": "string" },
+        "listingTitle": { "type": "string" },
+        "sellerId": { "type": "string" },
+        "buyerId": { "type": "string" },
+        "buyerName": { "type": "string" },
+        "buyerRole": { "type": "string", "enum": ["RECYCLER", "MANUFACTURER", "ARTISAN"] },
+        "requestedQuantity": { "type": "number" },
+        "offeredPrice": { "type": "number" },
+        "message": { "type": "string", "maxLength": 1000 },
+        "status": { "type": "string", "enum": ["PENDING", "ACCEPTED", "DECLINED"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "listingId", "sellerId", "buyerId", "buyerName", "message", "status"]
+    },
+    "SavedMaterial": {
+      "title": "SavedMaterial",
+      "description": "Saved / bookmarked listing for quick access by Recyclers or Manufacturers",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "listingId": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "listingId"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "Direct communication message between circular network partners",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "senderRole": { "type": "string" },
+        "receiverId": { "type": "string" },
+        "receiverName": { "type": "string" },
+        "listingId": { "type": "string" },
+        "content": { "type": "string", "maxLength": 2000 },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "senderId", "receiverId", "content", "createdAt"]
+    },
+    "EprRecord": {
+      "title": "EprRecord",
+      "description": "EPR compliance and textile chain-of-custody log for regulatory monitoring",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "listingId": { "type": "string" },
+        "materialType": { "type": "string" },
+        "quantity": { "type": "number" },
+        "unit": { "type": "string" },
+        "sellerLocation": { "type": "string" },
+        "recyclingPartner": { "type": "string" },
+        "carbonSavingsKg": { "type": "number" },
+        "complianceStatus": { "type": "string", "enum": ["VERIFIED", "AUDITED", "PENDING_REPORT"] },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["id", "listingId", "materialType", "quantity", "unit", "complianceStatus"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Registered circular economy participants and assigned roles"
+    },
+    "/listings/{listingId}": {
+      "schema": "Listing",
+      "description": "Centralized marketplace listings for textile waste and circular inventory"
+    },
+    "/materialRequests/{requestId}": {
+      "schema": "MaterialRequest",
+      "description": "Material sourcing inquiries and purchase quotations"
+    },
+    "/savedMaterials/{savedId}": {
+      "schema": "SavedMaterial",
+      "description": "Saved listings for recyclers and manufacturers"
+    },
+    "/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Direct communication between buyers and sellers"
+    },
+    "/eprRecords/{recordId}": {
+      "schema": "EprRecord",
+      "description": "Official EPR regulatory tracking logs and carbon avoidance records"
+    }
+  }
+}
